@@ -1,0 +1,107 @@
+# Start everything:   docker compose up --build
+#
+#   postgres   → database
+#   migrate    → creates/updates tables, then exits
+#   backend    → NestJS API          http://localhost:4000
+#   worker-1   → NestJS worker
+#   worker-2   → NestJS worker
+#   frontend   → Next.js page         http://localhost:3000
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: webhook-postgres
+    environment:
+      POSTGRES_USER: webhook
+      POSTGRES_PASSWORD: webhook
+      POSTGRES_DB: webhooks
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U webhook -d webhooks"]
+      interval: 2s
+      timeout: 5s
+      retries: 20
+
+  # Runs the migrations once. Everything else waits until it has finished,
+  # so the API and the two workers never race to create tables.
+  migrate:
+    build: ./backend
+    image: webhook-backend:local
+    command: ["node", "node_modules/typeorm/cli.js", "migration:run", "-d", "dist/database/data-source.js"]
+    environment:
+      DATABASE_URL: postgres://webhook:webhook@postgres:5432/webhooks
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  backend:
+    build: ./backend
+    image: webhook-backend:local
+    container_name: webhook-backend
+    command: ["node", "dist/main.js"]
+    environment:
+      DATABASE_URL: postgres://webhook:webhook@postgres:5432/webhooks
+      PORT: "4000"
+    ports:
+      - "4000:4000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  worker-1:
+    build: ./backend
+    image: webhook-backend:local
+    container_name: webhook-worker-1
+    command: ["node", "dist/worker.js"]
+    environment:
+      DATABASE_URL: postgres://webhook:webhook@postgres:5432/webhooks
+      WORKER_ID: worker-1
+      WORKER_CONCURRENCY: "2"
+      LEASE_SECONDS: "15"
+      MAX_ATTEMPTS: "5"
+      RETRY_BASE_DELAY_MS: "1000"
+      RETRY_MAX_DELAY_MS: "30000"
+      POLL_INTERVAL_MS: "500"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  worker-2:
+    build: ./backend
+    image: webhook-backend:local
+    container_name: webhook-worker-2
+    command: ["node", "dist/worker.js"]
+    environment:
+      DATABASE_URL: postgres://webhook:webhook@postgres:5432/webhooks
+      WORKER_ID: worker-2
+      WORKER_CONCURRENCY: "2"
+      LEASE_SECONDS: "15"
+      MAX_ATTEMPTS: "5"
+      RETRY_BASE_DELAY_MS: "1000"
+      RETRY_MAX_DELAY_MS: "30000"
+      POLL_INTERVAL_MS: "500"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # The browser on your machine calls the API here.
+        NEXT_PUBLIC_API_URL: http://localhost:4000
+    container_name: webhook-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:

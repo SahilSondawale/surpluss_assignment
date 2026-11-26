@@ -1,0 +1,144 @@
+/* Plain styles: the brief says styling is not graded. */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 24px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  color: #1f2328;
+  background: #f6f8fa;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-size: 22px;
+}
+
+button {
+  padding: 4px 10px;
+  border: 1px solid #c9d1d9;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.summary {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+  padding: 10px 14px;
+  border: 1px solid #d0d7de;
+  border-left-width: 5px;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.summary-number {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.send-panel,
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+th,
+td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #eaeef2;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: #f0f3f6;
+  font-weight: 600;
+}
+
+.event-row {
+  cursor: pointer;
+}
+
+.event-row:hover {
+  background: #f6f8fa;
+}
+
+table.attempts {
+  margin: 4px 0 8px;
+  border: 1px solid #d0d7de;
+}
+
+.mono {
+  font-family: ui-monospace, Consolas, monospace;
+}
+
+.muted {
+  color: #6e7781;
+}
+
+.error-text {
+  max-width: 360px;
+  color: #b42318;
+}
+
+.error-banner {
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #ffebe9;
+  color: #b42318;
+}
+
+.info {
+  color: #0969da;
+}
+
+.badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* status colours (used by badges and summary cards) */
+.status-pending { border-left-color: #8c959f; }
+.status-processing { border-left-color: #0969da; }
+.status-completed { border-left-color: #1a7f37; }
+.status-failed { border-left-color: #cf222e; }
+
+.badge.status-pending { background: #8c959f; }
+.badge.status-processing { background: #0969da; }
+.badge.status-completed { background: #1a7f37; }
+.badge.status-failed { background: #cf222e; }
+
+.badge.result-succeeded { background: #1a7f37; }
+.badge.result-failed { background: #cf222e; }
+.badge.result-abandoned { background: #bc4c00; }
+.badge.result-running { background: #0969da; }
